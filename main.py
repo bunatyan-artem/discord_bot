@@ -25,6 +25,7 @@ async def play(ctx, url: str):
             vc = await ctx.author.voice.channel.connect()
             queue[ctx.guild.id] = []
             repeat_flag[ctx.guild.id] = False
+            song = 0
         vcs[vc.guild.id] = vc
         with YoutubeDL(YTDL_OPTIONS) as ytdl:
             info = ytdl.extract_info(url, download = False)
@@ -36,13 +37,17 @@ async def play(ctx, url: str):
                 if len(queue[ctx.guild.id]) == 0:
                     await vcs[ctx.guild.id].disconnect()
                     break
-                link = queue[ctx.guild.id][0].get("url", None)
+                link = queue[ctx.guild.id][song].get("url", None)
+                if repeat_flag:
+                    song += 1
+                    if song == len(queue[ctx.guild.id]):
+                        song = 0
                 vcs[ctx.guild.id].play(disnake.FFmpegPCMAudio(source = link, **FFMPEG_OPTIONS))
                 while vc.is_playing() or vc.is_paused():
                     await asyncio.sleep(1)
                 if len(queue[ctx.guild.id]) > 0 and not repeat_flag[ctx.guild.id]:
                     queue[ctx.guild.id].pop(0)
-                elif not repeat_flag[ctx.guild.id]:
+                elif not repeat_flag[ctx.guild.id] or not vc.is_connected():
                     break
 
     except:
