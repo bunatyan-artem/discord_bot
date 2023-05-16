@@ -39,7 +39,7 @@ async def play(inter, request: str):
         with YoutubeDL(YTDL_OPTIONS) as ytdl:
             if 'https://' in request:
                 info = ytdl.extract_info(request, download = False)
-                await inter.send(info['duration_string'])
+                await inter.send(f"{request}\n{info['duration_string']}")
             else:
                 try:
                     info = ytdl.extract_info(f"ytsearch:{request}", download=False)['entries'][0]
@@ -159,6 +159,7 @@ async def help(ctx):
 
 @bot.slash_command()
 async def off(inter, password : str):
+    """don't use if you don't know"""
     if password == config.password:
         await inter.send("correct")
         sys.exit()
@@ -167,6 +168,7 @@ async def off(inter, password : str):
 
 @bot.slash_command()
 async def gpt_clear(inter):
+    """clear chat history with gpt-bot"""
     gpt_chats[inter.author.id] = []
     return await inter.send('Переписка стерта')
 
