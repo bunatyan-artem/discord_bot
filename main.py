@@ -35,6 +35,7 @@ async def play(inter, request: str):
     if not inter.guild:
         return await inter.send('В личных сообщениях я только gpt-бот')
     vc = inter.guild.voice_client
+    await inter.response.defer()
     try:
         with YoutubeDL(YTDL_OPTIONS) as ytdl:
             if 'https://' in request:
@@ -67,6 +68,8 @@ async def play(inter, request: str):
                 vcs[inter.guild.id].play(disnake.FFmpegPCMAudio(source = link, **FFMPEG_OPTIONS))
                 while vc.is_playing() or vc.is_paused():
                     await asyncio.sleep(2)
+                if not vc.is_connected():
+                    break
                 if len(queue_list[inter.guild.id]) > 0 and not repeat_flag[inter.guild.id]:
                     queue_list[inter.guild.id].pop(0)
                 elif not repeat_flag[inter.guild.id] or not vc.is_connected():
@@ -98,6 +101,17 @@ async def skip(inter):
     try:
         vcs[inter.guild.id].stop()
         await inter.send("song skipped")
+    except:
+        await inter.send("ошибка")
+
+@bot.slash_command()
+async def delete(inter, index : int):
+    """remove track by index"""
+    if not inter.guild:
+        return await inter.send('В личных сообщениях я только gpt-бот')
+    try:
+        await inter.send(f"{queue_list[inter.guild.id][index - 1]['title']} was removed from queue")
+        queue_list[inter.guild.id].pop(index - 1)
     except:
         await inter.send("ошибка")
 
